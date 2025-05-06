@@ -234,8 +234,11 @@ class ConfigEditor:
             return False, False, old_val
 
         # Special handling for resetting properties
+        # Check this case before type checking
+        special_reset = False
         if property == "openai.assistant_id" and value.lower() == "reset":
             val = None  # Set to None instead of "reset"
+            special_reset = True
 
         if isinstance(old_val, list) and isinstance(val, str):
             # allow changing list properties by adding or removing individual items
@@ -250,14 +253,16 @@ class ConfigEditor:
                 val = old_val.copy()
                 val.remove(item)
 
-        old_cls = old_val.__class__
-        val_cls = val.__class__
-        if old_val is not None and old_cls != val_cls:
-            raise ValueError(
-                f"Property {property} should be of type {old_cls.__name__}, not {val_cls.__name__}"
-            )
+        # Skip type checking for special cases like resetting assistant_id
+        if not special_reset:
+            old_cls = old_val.__class__
+            val_cls = val.__class__
+            if old_val is not None and old_cls != val_cls:
+                raise ValueError(
+                    f"Property {property} should be of type {old_cls.__name__}, not {val_cls.__name__}"
+                )
 
-        if not isinstance(val, (list, str, int, float, bool)):
+        if not (isinstance(val, (list, str, int, float, bool)) or val is None):
             raise ValueError(f"Cannot set composite value for property: {property}")
 
         names = property.split(".")
