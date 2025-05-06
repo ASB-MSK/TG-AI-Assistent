@@ -24,6 +24,7 @@ class OpenAI:
     window: int
     prompt: str
     params: dict
+    assistant_id: Optional[str]
 
     default_url = "https://api.openai.com/v1"
     default_model = "gpt-4o-mini"
@@ -44,6 +45,7 @@ class OpenAI:
         window: int,
         prompt: str,
         params: dict,
+        assistant_id: Optional[str] = None,
     ) -> None:
         self.url = url or self.default_url
         self.api_key = api_key
@@ -53,6 +55,7 @@ class OpenAI:
         self.prompt = prompt or self.default_prompt
         self.params = self.default_params.copy()
         self.params.update(params)
+        self.assistant_id = assistant_id
 
 
 @dataclass
@@ -97,7 +100,7 @@ class Config:
     """Config properties."""
 
     # Config schema version. Increments for backward-incompatible changes.
-    schema_version = 4
+    schema_version = 5
     # Bot version.
     version = 227
 
@@ -122,6 +125,7 @@ class Config:
             window=src["openai"].get("window"),
             prompt=src["openai"].get("prompt"),
             params=src["openai"].get("params") or {},
+            assistant_id=src["openai"].get("assistant_id"),
         )
 
         # Conversation settings.
@@ -212,7 +216,7 @@ class ConfigEditor:
 
         raise ValueError(f"Failed to get property: {property}")
 
-    def set_value(self, property: str, value: str) -> tuple[bool, bool]:
+    def set_value(self, property: str, value: str) -> tuple[bool, bool, Any]:
         """
         Changes a config property value.
         Returns a tuple `(has_changed, is_immediate, new_val)`
@@ -228,6 +232,10 @@ class ConfigEditor:
         old_val = self.get_value(property)
         if val == old_val:
             return False, False, old_val
+
+        # Special handling for resetting properties
+        if property == "openai.assistant_id" and value.lower() == "reset":
+            val = None  # Set to None instead of "reset"
 
         if isinstance(old_val, list) and isinstance(val, str):
             # allow changing list properties by adding or removing individual items
@@ -298,6 +306,9 @@ class SchemaMigrator:
         if data["schema_version"] == 3:
             data = cls._migrate_v3(data)
             has_changed = True
+        if data["schema_version"] == 4:
+            data = cls._migrate_v4(data)
+            has_changed = True
         return data, has_changed
 
     @classmethod
@@ -335,7 +346,8 @@ class SchemaMigrator:
         data["conversation"] = {"depth": old.get("max_history_depth") or Conversation.default_depth}
         return data
 
-    def _migrate_v3(old: dict) -> dict:
+    @classmethod
+    def _migrate_v3(cls, old: dict) -> dict:
         data = {
             "schema_version": 4,
             "telegram": old["telegram"],
@@ -347,6 +359,21 @@ class SchemaMigrator:
         imagine_enabled = old.get("imagine")
         imagine_enabled = True if imagine_enabled is None else imagine_enabled
         data["imagine"] = {"enabled": "users_only" if imagine_enabled else "none"}
+        return data
+        
+    @classmethod
+    def _migrate_v4(cls, old: dict) -> dict:
+        data = {
+            "schema_version": 5,
+            "telegram": old["telegram"],
+            "openai": old["openai"].copy(),
+            "conversation": old["conversation"],
+            "imagine": old["imagine"],
+            "persistence_path": old.get("persistence_path"),
+            "shortcuts": old.get("shortcuts"),
+        }
+        # Add the new assistant_id parameter
+        data["openai"]["assistant_id"] = None
         return data
 
 

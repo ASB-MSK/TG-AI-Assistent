@@ -13,6 +13,7 @@ from telegram.ext import CallbackContext
 
 from bot import ai
 from bot import markdown
+from bot.config import config
 
 
 class Asker:
@@ -35,6 +36,38 @@ class TextAsker(Asker):
 
     async def ask(self, prompt: str, question: str, history: list[tuple[str, str]]) -> str:
         """Asks AI a question."""
+        return await self.model.ask(prompt, question, history)
+
+    async def reply(self, message: Message, context: CallbackContext, answer: str) -> None:
+        """Replies with an answer from AI."""
+        html_answer = markdown.to_html(answer)
+        if len(html_answer) <= MessageLimit.MAX_TEXT_LENGTH:
+            await message.reply_text(html_answer, parse_mode=ParseMode.HTML)
+            return
+
+        doc = io.StringIO(answer)
+        caption = (
+            textwrap.shorten(answer, width=255, placeholder="...")
+            + " (see attachment for the rest)"
+        )
+        reply_to_message_id = message.id if message.chat.type != Chat.PRIVATE else None
+        await context.bot.send_document(
+            chat_id=message.chat_id,
+            caption=caption,
+            filename=f"{message.id}.md",
+            document=doc,
+            reply_to_message_id=reply_to_message_id,
+        )
+
+
+class AssistantAsker(Asker):
+    """Works with OpenAI Assistant API."""
+
+    def __init__(self, assistant_id: str) -> None:
+        self.model = ai.assistant.AssistantModel(assistant_id)
+
+    async def ask(self, prompt: str, question: str, history: list[tuple[str, str]]) -> str:
+        """Asks AI a question using the Assistant API."""
         return await self.model.ask(prompt, question, history)
 
     async def reply(self, message: Message, context: CallbackContext, answer: str) -> None:
@@ -101,4 +134,11 @@ def create(model: str, question: str) -> Asker:
     """Creates a new asker based on the question asked."""
     if question.startswith("/imagine"):
         return ImagineAsker()
+    
+    # Check if assistant_id is configured and valid
+    # Ignore assistant_id if it equals "reset" (used with /config command)
+    if config.openai.assistant_id and config.openai.assistant_id != "reset":
+        return AssistantAsker(config.openai.assistant_id)
+    
+    # Otherwise use the standard text completion API
     return TextAsker(model)
