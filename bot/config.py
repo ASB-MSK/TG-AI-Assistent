@@ -239,6 +239,14 @@ class ConfigEditor:
         if property == "openai.assistant_id" and value.lower() == "reset":
             val = None  # Set to None instead of "reset"
             special_reset = True
+            
+        # Special handling for imagine.enabled
+        if property == "imagine.enabled":
+            if value not in ["none", "users_only", "users_and_groups"]:
+                raise ValueError(
+                    f"Invalid value for imagine.enabled: {value}. "
+                    f"Valid options are: none, users_only, users_and_groups"
+                )
 
         if isinstance(old_val, list) and isinstance(val, str):
             # allow changing list properties by adding or removing individual items

@@ -14,7 +14,13 @@ E.g. to view the property value:
 <code>/config openai.prompt</code>
 
 E.g. to change the property value:
-<code>/config openai.prompt You are an AI assistant</code>"""
+<code>/config openai.prompt You are an AI assistant</code>
+
+Common properties:
+<code>/config imagine.enabled</code> - View current image generation settings
+<code>/config imagine.enabled none</code> - Disable image generation
+<code>/config imagine.enabled users_only</code> - Allow only for listed users
+<code>/config imagine.enabled users_and_groups</code> - Allow for users and groups"""
 
 editor = ConfigEditor(config)
 
