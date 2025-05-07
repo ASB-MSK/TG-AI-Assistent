@@ -247,6 +247,22 @@ class ConfigEditor:
                     f"Invalid value for imagine.enabled: {value}. "
                     f"Valid options are: none, users_only, users_and_groups"
                 )
+                
+        # Special handling for conversation.depth
+        if property == "conversation.depth":
+            try:
+                # Ensure it's an integer
+                val = int(val)
+                if val < 0:
+                    raise ValueError(
+                        f"Invalid value for conversation.depth: {val}. "
+                        f"Must be a non-negative integer (0 or greater)"
+                    )
+            except (ValueError, TypeError):
+                raise ValueError(
+                    f"Invalid value for conversation.depth: {val}. "
+                    f"Must be a non-negative integer (0 or greater)"
+                )
 
         if isinstance(old_val, list) and isinstance(val, str):
             # allow changing list properties by adding or removing individual items

@@ -20,7 +20,14 @@ Common properties:
 <code>/config imagine.enabled</code> - View current image generation settings
 <code>/config imagine.enabled none</code> - Disable image generation
 <code>/config imagine.enabled users_only</code> - Allow only for listed users
-<code>/config imagine.enabled users_and_groups</code> - Allow for users and groups"""
+<code>/config imagine.enabled users_and_groups</code> - Allow for users and groups
+
+<code>/config conversation.depth</code> - View memory depth (number of messages)
+<code>/config conversation.depth 5</code> - Set memory depth to 5 messages
+<code>/config conversation.depth 0</code> - Disable memory (bot forgets previous messages)
+
+<code>/config openai.assistant_id</code> - View current assistant ID
+<code>/config openai.assistant_id reset</code> - Disable Assistant API mode"""
 
 editor = ConfigEditor(config)
 
