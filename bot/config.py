@@ -352,12 +352,12 @@ class SchemaMigrator:
 
 def load(filename) -> dict:
     """Loads the configuration data dictionary from a file."""
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding='utf-8') as f:
         data = yaml.safe_load(f)
 
     data, has_changed = SchemaMigrator.migrate(data)
     if has_changed:
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding='utf-8') as f:
             yaml.safe_dump(data, f, indent=4, allow_unicode=True)
     return data
 
