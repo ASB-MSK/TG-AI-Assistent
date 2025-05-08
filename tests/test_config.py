@@ -233,87 +233,144 @@ class MigrateTest(unittest.TestCase):
     def test_migrate_v1(self):
         old = {
             "telegram_token": "tg-1234",
-            "telegram_usernames": ["alice"],
-            "telegram_chat_ids": [-100500],
+            "telegram_usernames": ["alice", "bob"],
             "openai_api_key": "oa-1234",
-            "openai_model": "gpt-3.5-turbo",
-            "persistence_path": "./data/persistence.pkl",
+            "openai_model": "gpt-4",
+            "max_history_depth": 5,
+            "imagine": True,
+            "persistence_path": "./data.pkl",
+            "shortcuts": {"translate": "Translate to EN"},
         }
-        migrated, has_changed = SchemaMigrator.migrate(old)
+
+        new, has_changed = SchemaMigrator.migrate(old)
         self.assertTrue(has_changed)
-        self.assertEqual(
-            migrated,
-            {
-                "schema_version": 4,
-                "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-                "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
-                "conversation": {"depth": 3},
-                "imagine": {"enabled": "users_only"},
-                "persistence_path": "./data/persistence.pkl",
-                "shortcuts": None,
-            },
-        )
+        self.assertEqual(new["schema_version"], 5)
+        self.assertEqual(new["telegram"]["token"], "tg-1234")
+        self.assertEqual(new["telegram"]["usernames"], ["alice", "bob"])
+        self.assertEqual(new["openai"]["api_key"], "oa-1234")
+        self.assertEqual(new["openai"]["model"], "gpt-4")
+        self.assertEqual(new["conversation"]["depth"], 5)
+        self.assertEqual(new["imagine"]["enabled"], "users_only")
+        self.assertEqual(new["persistence_path"], "./data.pkl")
+        self.assertEqual(new["shortcuts"]["translate"], "Translate to EN")
 
     def test_migrate_v2(self):
         old = {
             "schema_version": 2,
-            "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-            "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
-            "max_history_depth": 5,
-            "imagine": False,
-            "persistence_path": "./data/persistence.pkl",
-            "shortcuts": {"bugfix": "Fix bugs"},
-        }
-        migrated, has_changed = SchemaMigrator.migrate(old)
-        self.assertTrue(has_changed)
-        self.assertEqual(
-            migrated,
-            {
-                "schema_version": 4,
-                "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-                "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
-                "conversation": {"depth": 5},
-                "imagine": {"enabled": "none"},
-                "persistence_path": "./data/persistence.pkl",
-                "shortcuts": {"bugfix": "Fix bugs"},
+            "telegram": {
+                "token": "tg-1234",
+                "usernames": ["alice", "bob"],
+                "chat_ids": [],
             },
-        )
+            "openai": {
+                "api_key": "oa-1234",
+                "model": "gpt-4",
+                "prompt": "Be a good AI",
+                "params": {"temperature": 0.5, "max_tokens": 5000},
+            },
+            "max_history_depth": 5,
+            "imagine": True,
+            "persistence_path": "./data.pkl",
+            "shortcuts": {"translate": "Translate to EN"},
+        }
+
+        new, has_changed = SchemaMigrator.migrate(old)
+        self.assertTrue(has_changed)
+        self.assertEqual(new["schema_version"], 5)
+        self.assertEqual(new["telegram"]["token"], "tg-1234")
+        self.assertEqual(new["telegram"]["usernames"], ["alice", "bob"])
+        self.assertEqual(new["openai"]["api_key"], "oa-1234")
+        self.assertEqual(new["openai"]["model"], "gpt-4")
+        self.assertEqual(new["conversation"]["depth"], 5)
+        self.assertEqual(new["imagine"]["enabled"], "users_only")
+        self.assertEqual(new["persistence_path"], "./data.pkl")
+        self.assertEqual(new["shortcuts"]["translate"], "Translate to EN")
 
     def test_migrate_v3(self):
         old = {
             "schema_version": 3,
-            "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-            "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
+            "telegram": {
+                "token": "tg-1234",
+                "usernames": ["alice", "bob"],
+                "chat_ids": [],
+            },
+            "openai": {
+                "api_key": "oa-1234",
+                "model": "gpt-4",
+                "prompt": "Be a good AI",
+                "params": {"temperature": 0.5, "max_tokens": 5000},
+            },
             "conversation": {"depth": 5},
             "imagine": True,
-            "persistence_path": "./data/persistence.pkl",
-            "shortcuts": {"bugfix": "Fix bugs"},
+            "persistence_path": "./data.pkl",
+            "shortcuts": {"translate": "Translate to EN"},
         }
-        migrated, has_changed = SchemaMigrator.migrate(old)
-        self.assertTrue(has_changed)
-        self.assertEqual(
-            migrated,
-            {
-                "schema_version": 4,
-                "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-                "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
-                "conversation": {"depth": 5},
-                "imagine": {"enabled": "users_only"},
-                "persistence_path": "./data/persistence.pkl",
-                "shortcuts": {"bugfix": "Fix bugs"},
-            },
-        )
 
-    def test_not_changed(self):
+        new, has_changed = SchemaMigrator.migrate(old)
+        self.assertTrue(has_changed)
+        self.assertEqual(new["schema_version"], 5)
+        self.assertEqual(new["telegram"]["token"], "tg-1234")
+        self.assertEqual(new["telegram"]["usernames"], ["alice", "bob"])
+        self.assertEqual(new["openai"]["api_key"], "oa-1234")
+        self.assertEqual(new["openai"]["model"], "gpt-4")
+        self.assertEqual(new["conversation"]["depth"], 5)
+        self.assertEqual(new["imagine"]["enabled"], "users_only")
+        self.assertEqual(new["persistence_path"], "./data.pkl")
+        self.assertEqual(new["shortcuts"]["translate"], "Translate to EN")
+        
+    def test_migrate_v4(self):
         old = {
             "schema_version": 4,
-            "telegram": {"token": "tg-1234", "usernames": ["alice"], "chat_ids": [-100500]},
-            "openai": {"api_key": "oa-1234", "model": "gpt-3.5-turbo"},
+            "telegram": {
+                "token": "tg-1234",
+                "usernames": ["alice", "bob"],
+                "chat_ids": [],
+            },
+            "openai": {
+                "api_key": "oa-1234",
+                "model": "gpt-4",
+                "prompt": "Be a good AI",
+                "params": {"temperature": 0.5, "max_tokens": 5000},
+            },
             "conversation": {"depth": 5},
             "imagine": {"enabled": "users_only"},
-            "persistence_path": "./data/persistence.pkl",
-            "shortcuts": {"bugfix": "Fix bugs"},
+            "persistence_path": "./data.pkl",
+            "shortcuts": {"translate": "Translate to EN"},
         }
-        migrated, has_changed = SchemaMigrator.migrate(old)
+
+        new, has_changed = SchemaMigrator.migrate(old)
+        self.assertTrue(has_changed)
+        self.assertEqual(new["schema_version"], 5)
+        self.assertEqual(new["telegram"]["token"], "tg-1234")
+        self.assertEqual(new["telegram"]["usernames"], ["alice", "bob"])
+        self.assertEqual(new["openai"]["api_key"], "oa-1234")
+        self.assertEqual(new["openai"]["model"], "gpt-4")
+        self.assertEqual(new["openai"]["assistant_id"], None)
+        self.assertEqual(new["conversation"]["depth"], 5)
+        self.assertEqual(new["imagine"]["enabled"], "users_only")
+        self.assertEqual(new["persistence_path"], "./data.pkl")
+        self.assertEqual(new["shortcuts"]["translate"], "Translate to EN")
+
+    def test_not_changed(self):
+        data = {
+            "schema_version": 5,
+            "telegram": {
+                "token": "tg-1234",
+                "usernames": ["alice", "bob"],
+                "chat_ids": [],
+            },
+            "openai": {
+                "api_key": "oa-1234",
+                "model": "gpt-4",
+                "prompt": "Be a good AI",
+                "params": {"temperature": 0.5, "max_tokens": 5000},
+                "assistant_id": None,
+            },
+            "conversation": {"depth": 5},
+            "imagine": {"enabled": "users_only"},
+            "persistence_path": "./data.pkl",
+            "shortcuts": {"translate": "Translate to EN"},
+        }
+        migrated, has_changed = SchemaMigrator.migrate(data)
         self.assertFalse(has_changed)
-        self.assertEqual(migrated, old)
+        self.assertEqual(migrated, data)

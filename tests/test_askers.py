@@ -1,11 +1,13 @@
 import datetime as dt
 import unittest
+from unittest.mock import patch
 from telegram import Chat, Message, User
 from telegram.ext import CallbackContext
 
 from bot import askers
-from bot.askers import ImagineAsker, TextAsker
-from tests.mocks import FakeApplication, FakeBot, FakeDalle, FakeGPT, mock_text_asker
+from bot.askers import AssistantAsker, ImagineAsker, TextAsker
+from bot.config import config
+from tests.mocks import FakeApplication, FakeAssistant, FakeBot, FakeDalle, FakeGPT, mock_assistant_asker, mock_text_asker
 
 
 class TextAskerTest(unittest.IsolatedAsyncioTestCase):
@@ -27,6 +29,27 @@ class TextAskerTest(unittest.IsolatedAsyncioTestCase):
         asker = TextAsker("gpt")
         await asker.reply(message, context, answer="My name is ChatGPT.")
         self.assertEqual(context.bot.text, "My name is ChatGPT.")
+
+
+class AssistantAskerTest(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.ai = FakeAssistant()
+        mock_assistant_asker(self.ai)
+
+    async def test_ask(self):
+        asker = AssistantAsker("asst_id")
+        await asker.ask(
+            prompt="Answer me", question="What is your name?", history=[("Hello", "Hi")]
+        )
+        self.assertEqual(self.ai.prompt, "Answer me")
+        self.assertEqual(self.ai.question, "What is your name?")
+        self.assertEqual(self.ai.history, [("Hello", "Hi")])
+
+    async def test_reply(self):
+        message, context = _create_message()
+        asker = AssistantAsker("asst_id")
+        await asker.reply(message, context, answer="My name is Assistant.")
+        self.assertEqual(context.bot.text, "My name is Assistant.")
 
 
 class ImagineAskerTest(unittest.IsolatedAsyncioTestCase):
@@ -80,12 +103,27 @@ class ImagineAskerTest(unittest.IsolatedAsyncioTestCase):
 
 class CreateTest(unittest.TestCase):
     def test_text_asker(self):
-        asker = askers.create(model="gpt", question="What is your name?")
-        self.assertIsInstance(asker, TextAsker)
+        with patch('bot.askers.config') as mock_config:
+            mock_config.openai.assistant_id = None
+            asker = askers.create(model="gpt", question="What is your name?")
+            self.assertIsInstance(asker, TextAsker)
+
+    def test_assistant_asker(self):
+        with patch('bot.askers.config') as mock_config:
+            mock_config.openai.assistant_id = "asst_id"
+            asker = askers.create(model="gpt", question="What is your name?")
+            self.assertIsInstance(asker, AssistantAsker)
 
     def test_imagine_asker(self):
-        asker = askers.create(model="dalle", question="/imagine a cat")
-        self.assertIsInstance(asker, ImagineAsker)
+        with patch('bot.askers.config') as mock_config:
+            mock_config.openai.assistant_id = None
+            asker = askers.create(model="dalle", question="/imagine a cat")
+            self.assertIsInstance(asker, ImagineAsker)
+
+        with patch('bot.askers.config') as mock_config:
+            mock_config.openai.assistant_id = "asst_id"
+            asker = askers.create(model="dalle", question="/imagine a cat")
+            self.assertIsInstance(asker, ImagineAsker)
 
 
 def _create_message() -> tuple[Message, CallbackContext]:

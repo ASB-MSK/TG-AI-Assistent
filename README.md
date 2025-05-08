@@ -10,6 +10,7 @@ Notable features:
 -   Shortcuts (custom AI commands).
 -   Custom per-chat prompts and models.
 -   On-the-fly configuration.
+-   Support for OpenAI Assistant API.
 
 Read on for a detailed feature description or jump to [setup](#setup).
 
@@ -190,6 +191,7 @@ Use the `/config` command to change almost any setting on the fly, without resta
 -   Add or remove users and chats allowed to interact with the bot (`telegram.usernames` and `telegram.chat_ids`).
 -   Adjust the AI provider (`openai.url`), API key (`openai.api_key`), model (`openai.model`), prompt (`openai.prompt`) and params (`openai.params`).
 -   Add or change AI shortcuts (`shortcuts`).
+-   Set up an OpenAI Assistant (`openai.assistant_id`).
 -   Change any other config property.
 
 To view a specific config property, put its name after `/config`:
@@ -197,25 +199,48 @@ To view a specific config property, put its name after `/config`:
 ```
 /config telegram.usernames
 /config openai.prompt
+/config openai.assistant_id
 ```
 
-To change a specific config property, put its name and value after `/config`:
+## OpenAI Assistant API
+
+The bot supports the OpenAI Assistant API, which allows you to use custom assistants created in the OpenAI platform. 
+
+### Enabling Assistant API
+
+To use an OpenAI Assistant instead of the standard chat completion:
+
+1. Create an assistant in the [OpenAI Playground](https://platform.openai.com/assistants) or using the API
+2. Get the assistant ID (it looks like `asst_abc123...`)
+3. Configure the bot to use it:
+   ```
+   /config openai.assistant_id asst_your_assistant_id
+   ```
+
+When `openai.assistant_id` is set, the bot will automatically use the Assistant API instead of the standard Chat Completion API. Each user will get their own persistent thread, enabling the assistant to maintain context across conversations.
+
+### Disabling Assistant API
+
+To switch back to the standard chat completion API, clear the assistant ID:
 
 ```
-/config telegram.usernames ["alice", "bob", "cindy"]
-/config openai.url https://api.studio.nebius.ai/v1
-/config openai.model meta-llama/Meta-Llama-3.1-70B-Instruct
-/config openai.prompt "You are an evil AI bot"
+/config openai.assistant_id ""
 ```
 
-When working with list properties like `telegram.usernames`, you can add or remove individual items instead of redefining the whole list:
+or
 
 ```
-/config telegram.usernames +cindy
-/config telegram.usernames -bob
+/config openai.assistant_id reset
 ```
 
-The `/config` command is only available to admins - users listed in the `telegram.admins` property.
+### Benefits of using Assistant API
+
+- Better context management through persistent threads
+- Support for custom assistants with specific personalities, knowledge, or capabilities
+- Access to assistant-specific features like function calling, code interpreter, etc.
+- Potential for more consistent responses across multiple interactions
+
+Note that when using the Assistant API, some settings like `openai.model` and `openai.params` are ignored as these are configured in the assistant itself.
 
 ## Message limits
 
@@ -327,3 +352,103 @@ For feature history, see [releases](https://github.com/nalgeon/pokitoki/releases
 ## Credits
 
 Originally based on [chatgpt_telegram_bot](https://github.com/karfly/chatgpt_telegram_bot), although the projects have diverged quite a bit.
+
+# Pokitoki Bot
+
+Telegram бот для общения с OpenAI API.
+
+## Возможности
+
+- Общение с OpenAI API (GPT-4o-mini)
+- Генерация изображений с помощью DALL-E 3
+- Настройка параметров бота через команду `/config`
+- Ограничение доступа по списку пользователей и групп
+- Ограничение количества сообщений от пользователей
+- Настройка глубины памяти (количество сообщений, которые бот помнит)
+
+## Установка
+
+1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/yourusername/pokitoki.git
+cd pokitoki
+```
+
+2. Установите зависимости:
+```bash
+pip install -r requirements.txt
+```
+
+3. Создайте файл конфигурации `config.yml` на основе `config.example.yml`:
+```bash
+cp config.example.yml config.yml
+```
+
+4. Отредактируйте `config.yml`, указав:
+   - Токен Telegram бота
+   - API ключ OpenAI
+   - Список разрешенных пользователей и групп
+   - Другие настройки
+
+## Запуск
+
+```bash
+python -m bot.bot
+```
+
+## Настройка через команду /config
+
+Бот поддерживает настройку параметров через команду `/config`. Вот основные возможности:
+
+### Просмотр текущих настроек
+
+```
+/config property
+```
+
+Например:
+```
+/config openai.prompt
+/config conversation.depth
+/config imagine.enabled
+```
+
+### Изменение настроек
+
+```
+/config property value
+```
+
+Например:
+```
+/config openai.prompt You are an AI assistant
+/config conversation.depth 5
+/config imagine.enabled users_only
+```
+
+### Основные настройки
+
+- **Глубина памяти (conversation.depth)**
+  - Устанавливает количество сообщений, которые бот помнит
+  - Значение 0 отключает память (бот забывает предыдущие сообщения)
+  - Пример: `/config conversation.depth 5`
+
+- **Генерация изображений (imagine.enabled)**
+  - `none` - генерация изображений отключена для всех
+  - `users_only` - генерация изображений доступна только пользователям из списка telegram.usernames
+  - `users_and_groups` - генерация изображений доступна как для пользователей, так и для групп
+  - Пример: `/config imagine.enabled users_only`
+
+- **Режим Assistant API (openai.assistant_id)**
+  - Просмотр текущего ID ассистента: `/config openai.assistant_id`
+  - Отключение режима Assistant API: `/config openai.assistant_id reset`
+
+### Другие настройки
+
+- Добавление пользователя в список разрешенных: `/config telegram.usernames +username`
+- Удаление пользователя из списка: `/config telegram.usernames -username`
+- Аналогично для групп: `/config telegram.chat_ids +group_id`
+
+## Лицензия
+
+MIT

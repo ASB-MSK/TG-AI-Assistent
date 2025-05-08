@@ -1,7 +1,7 @@
 # Bot configuration parameters.
 
 # Config schema version. Increments for backward-incompatible changes.
-schema_version: 3
+schema_version: 5
 
 # Telegram settings.
 telegram:
@@ -42,6 +42,12 @@ openai:
 
     # Model prompt.
     prompt: "You are an AI assistant."
+
+    # Assistant ID.
+    # If provided, the bot will use the OpenAI Assistant API with this ID.
+    # If empty, the bot will use standard Chat Completion API.
+    # You can create an assistant in the OpenAI Playground or API.
+    assistant_id: ""
 
     # Model parameters.
     # See https://platform.openai.com/docs/api-reference/chat/create for description.

@@ -4,6 +4,7 @@ import logging
 import sys
 import textwrap
 import time
+import asyncio
 
 from telegram import Chat, Message, Update
 from telegram.ext import (
@@ -111,6 +112,19 @@ async def post_shutdown(application: Application) -> None:
     await fetcher.close()
 
 
+async def continuous_typing(chat, message_thread_id=None):
+    """Continuously sends typing action every 4 seconds until stopped."""
+    try:
+        while True:
+            await chat.send_action(action="typing", message_thread_id=message_thread_id)
+            await asyncio.sleep(4)  # Refresh typing indicator every 4 seconds
+    except asyncio.CancelledError:
+        # Task was cancelled, which is expected when response is ready
+        pass
+    except Exception as e:
+        logger.error(f"Error in continuous_typing: {e}")
+
+
 def with_message_limit(func):
     """Refuses to reply if the user has exceeded the message limit."""
 
@@ -147,7 +161,10 @@ async def reply_to(
     update: Update, message: Message, context: CallbackContext, question: str
 ) -> None:
     """Replies to a specific question."""
-    await message.chat.send_action(action="typing", message_thread_id=message.message_thread_id)
+    # Start a background task to continuously show typing indicator
+    typing_task = asyncio.create_task(
+        continuous_typing(message.chat, message.message_thread_id)
+    )
 
     try:
         chat = ChatData(context.chat_data)
@@ -162,9 +179,24 @@ async def reply_to(
         user = UserData(context.user_data)
         user.messages.add(question, answer)
         logger.debug(user.messages)
+        
+        # Cancel the typing indicator before sending the response
+        typing_task.cancel()
+        try:
+            await typing_task
+        except asyncio.CancelledError:
+            pass
+            
         await asker.reply(message, context, answer)
 
     except Exception as exc:
+        # Cancel the typing indicator in case of error
+        typing_task.cancel()
+        try:
+            await typing_task
+        except asyncio.CancelledError:
+            pass
+            
         class_name = f"{exc.__class__.__module__}.{exc.__class__.__qualname__}"
         error_text = f"{class_name}: {exc}"
         logger.error("Failed to answer: %s", error_text)
@@ -178,6 +210,10 @@ async def _ask_question(
     """Answers a question using the OpenAI model."""
     user_id = message.from_user.username or message.from_user.id
     logger.info(f"-> question id={message.id}, user={user_id}, n_chars={len(question)}")
+
+    # Set the user ID for AssistantAsker
+    if isinstance(asker, askers.AssistantAsker):
+        asker.model.user_id = str(user_id)
 
     question, is_follow_up = questions.prepare(question)
     question = await fetcher.substitute_urls(question)

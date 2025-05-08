@@ -19,6 +19,24 @@ class FakeGPT:
         return question
 
 
+class FakeAssistant:
+    def __init__(self, error: Optional[Exception] = None):
+        self.error = error
+        self.prompt = None
+        self.question = None
+        self.history = None
+        self.user_id = None
+        self.assistant_id = "fake_assistant_id"
+
+    async def ask(self, prompt: str, question: str, history: list) -> str:
+        self.prompt = prompt
+        self.question = question
+        self.history = history
+        if self.error:
+            raise self.error
+        return question
+
+
 class FakeDalle:
     def __init__(self, error: Optional[Exception] = None):
         self.error = error
@@ -95,3 +113,8 @@ class FakeApplication:
 def mock_text_asker(ai: FakeGPT) -> None:
     mock_init = lambda asker, _: setattr(asker, "model", ai)
     askers.TextAsker.__init__ = mock_init
+
+
+def mock_assistant_asker(ai: FakeAssistant) -> None:
+    mock_init = lambda asker, _: setattr(asker, "model", ai)
+    askers.AssistantAsker.__init__ = mock_init
