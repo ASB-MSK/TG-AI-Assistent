@@ -403,12 +403,13 @@ python -m bot.bot
 ### Просмотр текущих настроек
 
 ```
-/config property
+/config
 ```
 
 Например:
 ```
 /config openai.prompt
+/config telegram.usernames
 /config conversation.depth
 /config imagine.enabled
 ```
@@ -416,7 +417,7 @@ python -m bot.bot
 ### Изменение настроек
 
 ```
-/config property value
+/config название раздела и функции
 ```
 
 Например:
@@ -448,7 +449,3 @@ python -m bot.bot
 - Добавление пользователя в список разрешенных: `/config telegram.usernames +username`
 - Удаление пользователя из списка: `/config telegram.usernames -username`
 - Аналогично для групп: `/config telegram.chat_ids +group_id`
-
-## Лицензия
-
-MIT
