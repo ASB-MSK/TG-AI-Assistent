@@ -379,9 +379,10 @@ cd pokitoki
 pip install -r requirements.txt
 ```
 
-3. Создайте файл конфигурации `config.yml` на основе `config.example.yml`:
+3. Создайте файл конфигурации `config.yml` на основе `config.example.yml` и папку data:
 ```bash
 cp config.example.yml config.yml
+mkdir ./data
 ```
 
 4. Отредактируйте `config.yml`, указав:
