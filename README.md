@@ -47,13 +47,13 @@ To rephrase or add to the last question, simply edit it. The bot will then answe
 To get an answer from the bot in a group, mention it in a reply to a question:
 
 > 🧑 I forgot who played Ramsy in the Game of Thrones 😕<br>
-> 🧑 ↳ @pokitokibot help
+> 🧑 ↳ @TG-AI-Assistentbot help
 >
 > 🤖 Ramsay Bolton in Game of Thrones was played by Iwan Rheon.
 
 Or ask a question directly:
 
-> 🧑 @pokitokibot Who played Ramsy in the Game of Thrones?
+> 🧑 @TG-AI-Assistentbot Who played Ramsy in the Game of Thrones?
 >
 > 🤖 Iwan Rheon played Ramsay Bolton in Game of Thrones.
 
@@ -170,7 +170,7 @@ Chat information:
 
 Bot information:
 - id: 5930739038
-- name: @pokitokibot
+- name: @TG-AI-Assistentbot
 - version: 129
 - usernames: 6 users
 - admins: 1 users
@@ -281,7 +281,7 @@ message_limit:
 3. Clone the repo to the server:
 
 ```bash
-git clone https://github.com/nalgeon/pokitoki.git
+git clone git clone https://github.com/ASB-MSK/TG-AI-Assistent.git
 ```
 
 4. Copy `config.example.yml` to `config.yml` and specify your tokens there. Add yourself to the `telegram.usernames` property, otherwise the bot will be available to everyone.
@@ -347,13 +347,13 @@ Use [Black](https://black.readthedocs.io/en/stable/) for code formatting. Be sur
 
 ## Changelog
 
-For feature history, see [releases](https://github.com/nalgeon/pokitoki/releases).
+For feature history, see [releases](https://github.com/ASB-MSK/TG-AI-Assistent/releases).
 
 ## Credits
 
 Originally based on [chatgpt_telegram_bot](https://github.com/karfly/chatgpt_telegram_bot), although the projects have diverged quite a bit.
 
-# Pokitoki Bot
+# TG-AI-Assistent Bot
 
 Telegram бот для общения с OpenAI API.
 
@@ -370,8 +370,8 @@ Telegram бот для общения с OpenAI API.
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/yourusername/pokitoki.git
-cd pokitoki
+git clone https://github.com/ASB-MSK/TG-AI-Assistent.git
+cd TG-AI-Assistent
 ```
 
 2. Установите зависимости:
