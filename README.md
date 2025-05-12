@@ -317,7 +317,12 @@ python3 -m venv env
 . env/bin/activate
 pip install -r requirements.txt
 ```
-
+OR
+```
+python -m venv env
+.\env\Scripts\activate.ps1
+pip install -r requirements.txt
+```
 Prepare the config and data directory:
 
 ```
